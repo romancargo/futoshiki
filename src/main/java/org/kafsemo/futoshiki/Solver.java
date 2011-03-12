@@ -43,8 +43,12 @@ public class Solver
     
     public void solve(Futoshiki f)
     {
+        solve(f, new Possibilities(f.getLength()));
+    }
+    
+    public void solve(Futoshiki f, Possibilities poss)
+    {
         CellPos[] blanks = f.blankCells().toArray(CELLPOS_ARRAY);
-        Possibilities poss = new Possibilities(f.getLength());
         poss.use(f);
         BigInteger count = poss.size();
         log.fine("Solution possibilities: " + poss.size());

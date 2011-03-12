@@ -19,7 +19,10 @@
 package org.kafsemo.futoshiki;
 
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.BitSet;
+import java.util.Collection;
+import java.util.Collections;
 
 /**
  * Moves that are still possible given the current numbers.
@@ -28,15 +31,17 @@ import java.util.BitSet;
  */
 public class Possibilities extends Grid
 {
-    private final BitSet possibilities;
+    protected final BitSet possibilities;
 
+    private Collection<GtRule> rules = Collections.emptyList();
+    
     public Possibilities(int length)
     {
         super(length);
         this.possibilities = new BitSet(length * length * length);
     }
     
-    private Possibilities(int length, BitSet p)
+    protected Possibilities(int length, BitSet p)
     {
         super(length);
         this.possibilities = p;
@@ -47,6 +52,11 @@ public class Possibilities extends Grid
         return (((column - 1) * length) + row - 1) * length + value - 1;
     }
     
+    protected void setImpossible(int column, int row, int value)
+    {
+        possibilities.set(bit(column, row, value));
+    }
+    
     public void use(int column, int row, int value)
     {
         if (value < 1 || value > length)
@@ -54,19 +64,31 @@ public class Possibilities extends Grid
         
         for (int c = 1; c <= length; c++) {
             if (c != column) {
-                possibilities.set(bit(c, row, value));
+                setImpossible(c, row, value);
             }
         }
         
         for (int r = 1; r <= length; r++) {
             if (r != row) {
-                possibilities.set(bit(column, r, value));
+                setImpossible(column, r, value);
             }
         }
         
         for (int v = 1; v <= length; v++) {
             if (v != value) {
-                possibilities.set(bit(column, row, v));
+                setImpossible(column, row, v);
+            }
+        }
+        
+        for (GtRule r : this.rules) {
+            int greatestMoreThan = minPossible(r.getLesserColumn(), r.getLesserRow());
+            for (int v = 1; v <=  greatestMoreThan; v++) {
+                setImpossible(r.getGreaterColumn(), r.getGreaterRow(), v);
+            }
+            
+            int leastLessThan = maxPossible(r.getGreaterColumn(), r.getGreaterRow());
+            for (int v = leastLessThan; v <= length; v++) {
+                setImpossible(r.getLesserColumn(), r.getLesserRow(), v);
             }
         }
     }
@@ -104,15 +126,19 @@ public class Possibilities extends Grid
             }
         }
         
+        this.rules = new ArrayList<GtRule>();
+        
         for (GtRule r : f.getRules()) {
+            this.rules.add(r);
+            
             int greatestMoreThan = minPossible(r.getLesserColumn(), r.getLesserRow());
             for (int v = 1; v <=  greatestMoreThan; v++) {
-                possibilities.set(bit(r.getGreaterColumn(), r.getGreaterRow(), v));
+                setImpossible(r.getGreaterColumn(), r.getGreaterRow(), v);
             }
             
             int leastLessThan = maxPossible(r.getGreaterColumn(), r.getGreaterRow());
             for (int v = leastLessThan; v <= length; v++) {
-                possibilities.set(bit(r.getLesserColumn(), r.getLesserRow(), v));
+                setImpossible(r.getLesserColumn(), r.getLesserRow(), v);
             }
         }
     }

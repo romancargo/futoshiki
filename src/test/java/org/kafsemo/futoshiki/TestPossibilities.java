@@ -206,6 +206,26 @@ public class TestPossibilities
         assertEquals(8, p.possibleCount(2, 1));
     }
     
+    @Test
+    public void usingCellsEliminatesPossibilitiesUsingRules()
+    {
+        Possibilities p = new Possibilities(4);
+        Futoshiki f = new Futoshiki(4);
+
+        f.addGtRule(2, 1, 1, 1);
+        p.use(f);
+        
+        assertFalse(p.isPossible(1, 1, 4));
+        assertTrue(p.isPossible(1, 1, 3));
+        assertTrue(p.isPossible(1, 1, 2));
+        assertTrue(p.isPossible(1, 1, 1));
+        
+        p.use(2, 1, 2);
+        assertFalse(p.isPossible(1, 1, 3));
+        assertFalse(p.isPossible(1, 1, 2));
+        assertTrue(p.isPossible(1, 1, 1));
+    }
+    
     public static String toString(Possibilities p)
     {
         StringBuilder sb = new StringBuilder();
